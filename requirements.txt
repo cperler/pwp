@@ -1,0 +1,7 @@
+MySQL-python
+httplib2
+peewee
+pip
+setuptools
+simplejson
+yolk
