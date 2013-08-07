@@ -176,6 +176,7 @@ class Pwp_Stock(BaseModel):
     create_date = DateTimeField()
     currency = CharField(null=True)
     exchange = CharField()
+    isin = CharField(null=True)
     last_update_date = DateTimeField()
     notes = CharField(null=True)
     orig_ticker_exchange = CharField(null=True)
@@ -185,25 +186,44 @@ class Pwp_Stock(BaseModel):
     class Meta:
         db_table = 'pwp_stock'
 
-    def get_last_closing_price(self):
-        response = request(get_last_closing_price % (self.ticker, xignite_token))
+    def get_last_closing_price(self, identifier_type='ISIN'):
+        identifier = self.isin
+        if identifier is None:
+            identifier_type = 'Symbol'
+            identifier = self.ticker
+            
+        response = request(get_last_closing_price % (identifier, identifier_type, xignite_token))
         return response.get('LastClose', 0.0)
 
-    def retrieve_and_save_eod_quote_for_date(self, dt=datetime.date.today(), persist=False):
+    def get_eod_quote_for_date(self, dt=datetime.date.today(), identifier_type='ISIN'):
         eod_quote_for_date = Pwp_Stock_Price_History.select().where((Pwp_Stock_Price_History.stock==self.stock) & (Pwp_Stock_Price_History.date==dt))
         last_close_for_date = 0.0
+
+        history_record = None
         if eod_quote_for_date.count() == 0:
-            response = request(get_eod_quote_for_date % (self.ticker, dt, xignite_token))
+            identifier = self.isin
+            if identifier is None:
+                identifier_type = 'Symbol'
+                identifier = self.ticker
+            
+            response = request(get_eod_quote_for_date % (identifier, identifier_type, dt, xignite_token))
             last_close_for_date = response.get('LastClose', 0.0)
-            if persist:
-                if last_close_for_date == 0.0:
-                    print 'Unable to retrieve px for (%s, %s) -- not persisting.' % (self.ticker, dt)
-                else:
-                    Pwp_Stock_Price_History.create(close=last_close_for_date, date=dt, stock=self.stock)
-                    print 'Persisted px for (%s, %s).' % (self.ticker, dt)
         else:
-            last_close_for_date = eod_quote_for_date.get().close
-        return last_close_for_date
+            history_record = eod_quote_for_date.get()
+            last_close_for_date = history_record.close
+        return (last_close_for_date, history_record)             
+
+    def update_eod_quote_for_date(self, dt=datetime.date.today(), identifier_type='ISIN'):
+        last_close_for_date, history_record = self.get_eod_quote_for_date(dt, identifier_type)
+
+        if history_record:
+            print 'Record already exists for (%s, %s) -- not updating.' % (self.ticker, dt)
+        else:
+            if last_close_for_date == 0.0:
+                print 'Unable to retrieve px for (%s, %s) -- not persisting.' % (self.ticker, dt)
+            else:
+                Pwp_Stock_Price_History.create(close=last_close_for_date, date=dt, stock=self.stock)
+                print 'Persisted px for (%s, %s).' % (self.ticker, dt)
 
 class Pwp_Stock_Price_History(BaseModel):
     close = FloatField()
@@ -248,33 +268,3 @@ class Us_States(BaseModel):
 
     class Meta:
         db_table = 'us_states'
-
-
-def get_exchanges():
-    return request(list_exchanges % xignite_token)
-
-def get_sectors():
-    return request(list_sectors % xignite_token)
-
-def get_industries():
-    return request(list_industries % xignite_token)
-
-def get_instrument_details(identifier, start, end):
-    return request(get_instrument % (identifier, start, end, xignite_token))
-
-def get_instruments_details(identifier_list, as_of):
-    return request(get_instruments % (','.join(identifier_list), as_of, xignite_token))
-
-def get_eod_quotes(identifier_list, as_of):
-    return request(get_eod_quotes_for_date % (','.join(identifier_list), as_of, xignite_token))
-
-def test():
-    print Pwp_Stock.select().where(Pwp_Stock.ticker == 'IBM').get().get_last_closing_price()
-    print Pwp_Stock.select().where(Pwp_Stock.ticker == 'IBM').get().get_eod_quote_for_date()
-    print Pwp_Stock.select().where(Pwp_Stock.ticker == 'IBM').get().get_eod_quote_for_date(datetime.date(2013, 07, 29))
-    print Pwp_Stock.select().where(Pwp_Stock.ticker == 'IBM').get().get_eod_quote_for_date(datetime.date(2013, 01, 24))
-    print get_exchanges()
-    print get_instrument_details('GOOG', datetime.date(2013,07,29), datetime.date(2013,07,30))
-    print get_instruments_details(['GOOG', 'IBM'], datetime.date(2013,07,29))
-    print get_eod_quotes(['GOOG', 'IBM'], datetime.date(2013,07,28))
-
