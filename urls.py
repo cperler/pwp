@@ -8,7 +8,7 @@ get_eod_quote_for_date = 'http://www.xignite.com/xGlobalHistorical.json/GetEndOf
 
 get_last_closing_price = 'http://www.xignite.com/xGlobalHistorical.json/GetGlobalLastClosingPrice?Identifier=%s&IdentifierType=%s&AdjustmentMethod=SplitAndCashDividend&_Token=%s'
 
-get_eod_quotes_for_date = 'http://www.xignite.com/xGlobalHistorical.json/GetEndOfDayQuotes?Identifiers=%s&IdentifierType=%s&AdjustmentMethod=SplitAndCashDividend&EndOfDayPriceMethod=LastTrade&AsOfDate=%s&_Token=%s'
+get_eod_quotes_for_date = 'http://www.xignite.com/xGlobalHistorical.json/GetEndOfDayQuotes?Identifiers=%s&IdentifierType=%s&AdjustmentMethod=SplitOnly&EndOfDayPriceMethod=LastTrade&AsOfDate=%s&_Token=%s'
 
 list_exchanges = 'http://globalmaster.xignite.com/xglobalmaster.json/ListExchanges?_Token=%s'
 list_sectors = 'http://globalmaster.xignite.com/xglobalmaster.json/ListSectors?_Token=%s'

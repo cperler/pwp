@@ -47,6 +47,6 @@ def test_partition():
 #test_update_px_history()
 #test_get_static()
 #test_get_instrument()
-#test_get_eod_quotes()
-#test_get_last_closing_prices()
+test_get_eod_quotes()
+test_get_last_closing_prices()
 #test_partition()

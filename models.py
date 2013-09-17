@@ -170,6 +170,13 @@ class Pwp_Settings(BaseModel):
     class Meta:
         db_table = 'pwp_settings'
 
+class Pwp_Exchange_Map(BaseModel):
+    capiq = CharField(null=True, primary_key=True)
+    xignite = CharField(null=True)
+
+    class Meta:
+        db_table = 'pwp_exchange_map'
+
 class Pwp_Stock(BaseModel):
     active = IntegerField(null=True)
     company_name = CharField()
@@ -186,14 +193,39 @@ class Pwp_Stock(BaseModel):
     class Meta:
         db_table = 'pwp_stock'
 
+    def get_xignite_exchange(self):
+        exchange_list = Pwp_Exchange_Map.select().where(Pwp_Exchange_Map.capiq == self.exchange)
+        if exchange_list.count() == 0:
+            return None
+        elif exchange_list.count() == 1:
+            return exchange_list.get().xignite
+        raise Exception('Too many exchange codes available in mapping table for %s.' % self.exchange)
+        
     def get_last_closing_price(self, identifier_type='ISIN'):
         identifier = self.isin
         if identifier is None:
             identifier_type = 'Symbol'
             identifier = self.ticker
-            
-        response = request(get_last_closing_price % (identifier, identifier_type, xignite_token))
+
+        exchange = self.get_xignite_exchange()
+        identifier_with_exchange = identifier
+        if exchange:
+            identifier_with_exchange = '%s.%s' % (identifier, exchange)
+        response = request(get_last_closing_price % (identifier_with_exchange, identifier_type, xignite_token))
         return response.get('LastClose', 0.0)
+
+    def identifier_and_suffix(self, identifier_type='ISIN'):
+        identifier = self.isin
+        if identifier is None:
+            identifier_type = 'Symbol'
+            identifier = self.ticker
+            
+        exchange = self.get_xignite_exchange()
+        identifier_with_exchange = identifier
+
+        if exchange:
+            identifier_with_exchange = '%s.%s' % (identifier, exchange)        
+        return identifier_with_exchange    
 
     def get_eod_quote_for_date(self, dt=datetime.date.today(), identifier_type='ISIN'):
         eod_quote_for_date = Pwp_Stock_Price_History.select().where((Pwp_Stock_Price_History.stock==self.stock) & (Pwp_Stock_Price_History.date==dt))

@@ -1,0 +1,34 @@
+create table pwp_exchange_map (capiq varchar(50), xignite varchar(10));
+
+insert into pwp_exchange_map (capiq, xignite) values ('AMEX', 'XASE');
+insert into pwp_exchange_map (capiq, xignite) values ('ASX', 'XASX');
+insert into pwp_exchange_map (capiq, xignite) values ('CATS', 'XMAD');
+
+insert into pwp_exchange_map (capiq, xignite) values ('DB', 'XFRA');
+insert into pwp_exchange_map (capiq, xignite) values ('ENXTAM', 'XAMS');
+insert into pwp_exchange_map (capiq, xignite) values ('ENXTBR', 'XBRU');
+insert into pwp_exchange_map (capiq, xignite) values ('ENXTPA', 'XPAR');
+insert into pwp_exchange_map (capiq, xignite) values ('LSE', 'XLON');
+insert into pwp_exchange_map (capiq, xignite) values ('NasdaqCM', 'XNAS');
+insert into pwp_exchange_map (capiq, xignite) values ('NasdaqGM', 'XNAS');
+insert into pwp_exchange_map (capiq, xignite) values ('NasdaqGS', 'XNAS');
+insert into pwp_exchange_map (capiq, xignite) values ('NYSE', 'XNYS');
+insert into pwp_exchange_map (capiq, xignite) values ('OM', 'XOME');
+insert into pwp_exchange_map (capiq, xignite) values ('SEHK', 'XHKG');
+insert into pwp_exchange_map (capiq, xignite) values ('SWX', 'XSWX');
+insert into pwp_exchange_map (capiq, xignite) values ('TSE', 'XTKS');
+insert into pwp_exchange_map (capiq, xignite) values ('TSEC', 'XTAI');
+insert into pwp_exchange_map (capiq, xignite) values ('TSX', 'XTSE');
+insert into pwp_exchange_map (capiq, xignite) values ('VIRTX', 'XVTX');
+insert into pwp_exchange_map (capiq, xignite) values ('ARCA', 'ARCX');
+insert into pwp_exchange_map (capiq, xignite) values ('AIM', 'XAIM');
+insert into pwp_exchange_map (capiq, xignite) values ('BIT', 'XMIL');
+insert into pwp_exchange_map (capiq, xignite) values ('BOVESPA', 'XBSP');
+insert into pwp_exchange_map (capiq, xignite) values ('CPSE', 'XCSE');
+insert into pwp_exchange_map (capiq, xignite) values ('ISE', 'XDUB');
+insert into pwp_exchange_map (capiq, xignite) values ('JKSE', 'XJKT');
+insert into pwp_exchange_map (capiq, xignite) values ('MICEX', 'XMIC');
+insert into pwp_exchange_map (capiq, xignite) values ('OTCBB', 'XOTC');
+insert into pwp_exchange_map (capiq, xignite) values ('OTCPK', 'PINX');
+insert into pwp_exchange_map (capiq, xignite) values ('SHSE', 'XSHG');
+insert into pwp_exchange_map (capiq, xignite) values ('SZSE', 'XSHE');
