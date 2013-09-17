@@ -60,7 +60,7 @@ def batch_retrieve_and_email(persist=True, daysback=0, emailto=['craig.perler@gm
     f = open(filename, 'w')
     f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\n')
     for lst in partition(isins, len(isins) / 50):
-        eod_quotes = get_eod_quotes(lst, 'ISIN', today)	# api call to xignite
+        eod_quotes = get_eod_quotes(lst, 'ISIN', today)
         if not eod_quotes:
             continue
         for eod_quote in eod_quotes:
@@ -76,7 +76,6 @@ def batch_retrieve_and_email(persist=True, daysback=0, emailto=['craig.perler@gm
                 exchange = stock.exchange
                 ticker = stock.ticker
                 
-                # xignite doesn't have data for certain markets:
                 if market in ['MILAN', 'NAIROBI', 'MEXICO', 'MANILA', 'HOCHIMINH STOCK EXCHANGE', 'KARACHI', 'JAKARTA', 'BOGOTA', 'CAIRO']:
                     raise Exception('Exchange %s not supported for (%s, %s).' % (market, ticker, isin))
                 
@@ -84,28 +83,22 @@ def batch_retrieve_and_email(persist=True, daysback=0, emailto=['craig.perler@gm
                 local_ccy = stock.currency
                 eod_close = eod_quote['EndOfDayPrice']
                 ccy = eod_quote['Currency']
-				
-                # xignite has a different currency than the db for some names:
                 if local_ccy != ccy:
                     errors.append((ticker, isin, 'PWP currency %s does not match xIgnite currency %s for (%s, %s).' % (local_ccy, ccy, ticker, isin)))
                 industry = eod_quote['Security']['CategoryOrIndustry']
-				
                 f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % (market, symbol, id, company, exchange, ticker, local_ccy, last_close, last, eod_close, ccy, industry, isin))
 
-				if persist:
-					eod_quote_for_date = Pwp_Stock_Price_History.select().where((Pwp_Stock_Price_History.stock==stock.stock) & (Pwp_Stock_Price_History.date==today))
-					if eod_quote_for_date.count() == 0:
-						if last_close == 0.0:
-							print 'Unable to retrieve px for (%s, %s) -- not persisting.' % (stock.ticker, today)
-							errors.append((symbol, isin))
-						else:
-							Pwp_Stock_Price_History.create(close=last_close, date=today, stock=stock.stock)
-							success.append((symbol, isin))
-							print 'Persisted px for (%s, %s).' % (stock.ticker, today)
-					else:
-						skips.append((symbol, isin))
-						print 'Not persisting px for (%s, %s, %s) -- already exists.' % (symbol, isin, today)                        
-                        
+                if persist:
+                    eod_quote_for_date = Pwp_Stock_Price_History.select().where((Pwp_Stock_Price_History.stock==stock.stock) & (Pwp_Stock_Price_History.date==today))
+                    if eod_quote_for_date.count() == 0:
+                        if last_close == 0.0:
+                            print 'Unable to retrieve px for (%s, %s) -- not persisting.' % (stock.ticker, today)
+                        else:
+                            Pwp_Stock_Price_History.create(close=last_close, date=today, stock=stock.stock)
+                            print 'Persisted px for (%s, %s).' % (stock.ticker, today)
+                    else:
+                        print 'Not persisting px for (%s, %s, %s) -- already exists.' % (symbol, isin, today)                        
+                success.append(symbol)
             except Exception, e:
                 symbol_from_err = 'Unknown Symbol'
                 isin_from_err = 'Unknown ISIN'
