@@ -76,7 +76,7 @@ def batch_retrieve_and_email(persist=True, daysback=0, emailto=['craig.perler@gm
                 exchange = stock.exchange
                 ticker = stock.ticker
                 
-				# xignite doesn't have data for certain markets:
+                # xignite doesn't have data for certain markets:
                 if market in ['MILAN', 'NAIROBI', 'MEXICO', 'MANILA', 'HOCHIMINH STOCK EXCHANGE', 'KARACHI', 'JAKARTA', 'BOGOTA', 'CAIRO']:
                     raise Exception('Exchange %s not supported for (%s, %s).' % (market, ticker, isin))
                 
@@ -85,7 +85,7 @@ def batch_retrieve_and_email(persist=True, daysback=0, emailto=['craig.perler@gm
                 eod_close = eod_quote['EndOfDayPrice']
                 ccy = eod_quote['Currency']
 				
-				# xignite has a different currency than the db for some names:
+                # xignite has a different currency than the db for some names:
                 if local_ccy != ccy:
                     errors.append((ticker, isin, 'PWP currency %s does not match xIgnite currency %s for (%s, %s).' % (local_ccy, ccy, ticker, isin)))
                 industry = eod_quote['Security']['CategoryOrIndustry']
