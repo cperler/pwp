@@ -202,4 +202,4 @@ def batch_retrieve_and_email(persist=True, daysback=0, emailto=['craig.perler@gm
     print 'ISINs missing on %s stocks.' % len(no_isins)
     #print '\n'.join(errors)
 
-    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3>', files=[filename, err_filename], server='smtp.gmail.com', username='craig.perler@gmail.com', password='p0rsche9')
+    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3>', files=[filename, err_filename], server='smtp.gmail.com', username='craig.perler@gmail.com', password='')
