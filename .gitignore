@@ -36,3 +36,6 @@ nosetests.xml
 
 production.py
 passwords.py
+playpw5_pwp.sql
+env.py
+*.tsv

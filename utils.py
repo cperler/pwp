@@ -5,7 +5,8 @@ from urls import *
 xignite_token = env['xignite']['token']
 
 def get_exchanges():
-    return request(list_exchanges % xignite_token)
+    exchanges = request(list_exchanges % xignite_token)
+    return [e['ProviderValue'] for e in exchanges['Values']]
 
 def get_sectors():
     return request(list_sectors % xignite_token)
