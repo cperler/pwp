@@ -118,9 +118,12 @@ class Pwp_Pwp_Stocks(BaseModel):
         return response.get('LastClose', 0.0)
 
     def _retrieve_closing_price_for_date(self, dt=datetime.date.today(), identifier_type='ISIN'):
+        return self._retrieve_closing_quote_for_date(dt, identifier_type).get('ExchangeClose', 0.0)
+    
+    def _retrieve_closing_quote_for_date(self, dt=datetime.date.today(), identifier_type='ISIN'):
         identifier_with_exchange, identifier_type = self.identifier_and_suffix(identifier_type)        
         response = request(get_eod_quote_for_date % (identifier_with_exchange, identifier_type, dt, xignite_token))
-        return response.get('ExchangeClose', 0.0)
+        return response
 
     def _get_history_from_db(self, dt=datetime.date.today()):
         eod_quote_for_date = Pwp_Pwp_Xignite_Stocks_History.select().where(
