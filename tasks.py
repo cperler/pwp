@@ -125,12 +125,13 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     f.close()
     e.close()
     
-    print 'Successfully updated prices for %s stocks.' % success
-    print 'Skipped updating %s stocks as they were already current.' % skip
-    print 'Found errors updating %s stocks.' % error
-    print 'ISINs missing on %s stocks.' % missing_isin
-
-    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3>', files=[filename, err_filename])
+    body = 'Successfully updated prices for %s stocks.' % success
+    body += '<br/>Skipped updating %s stocks as they were already current.' % skip
+    body += '<br/>Found errors updating %s stocks.' % error
+    body += '<br/>ISINs missing on %s stocks.' % missing_isin
+    print body
+    
+    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
     
 def batch_retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.com']):
     isins = [stock.identifier_and_suffix()[0] for stock in Pwp_Pwp_Stocks.select() if stock.isin is not None]
