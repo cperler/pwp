@@ -43,7 +43,6 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         if stock.has_db_price_for_date(query_date):
             skip += 1
             msg = 'Price already exists in db for (%s, %s).' % (symbol, isin)
-            e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
             print msg
             continue
                 
