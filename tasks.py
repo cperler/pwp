@@ -91,12 +91,19 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
             msg = 'Persisted currency %s does not match xIgnite currency %s for (%s, %s).' % (local_ccy, xignite_ccy, symbol, isin)
             e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
             print msg
-            continue            
+            continue
         
         print 'Px %s found on xignite quote for (%s, %s).' % (xignite_latest_close, symbol, isin)
         if persist:
-            stock.update_closing_price_for_date(xignite_latest_close)
-
+            try:
+                stock.update_closing_price_for_date(xignite_latest_close)
+            except Exception as ex:
+                error += 1
+                msg = 'Exception %s persisting px %s for (%s, %s).' % (ex, xignite_latest_close, symbol, isin)
+                e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
+                print msg
+                continue
+            
         try:
             f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
                     (xignite_market.encode('utf-8'), 
