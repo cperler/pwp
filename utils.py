@@ -25,6 +25,9 @@ def get_eod_quotes(identifier_list, identifier_type, as_of):
                         
 def get_last_closing_prices(identifier_list, identifier_type):
     return request(urls.get_last_closing_prices % (','.join(identifier_list), identifier_type, xignite_token))
+	
+def get_symbols_by_exchange(exchange_code, as_of_date):
+	return request(urls.get_symbols_by_exchange % (exchange_code, as_of_date, xignite_token))
 
 import smtplib, os
 from email.mime.multipart import MIMEMultipart

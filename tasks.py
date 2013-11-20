@@ -1,7 +1,26 @@
-from utils import get_exchanges, get_eod_quotes, send_mail
+from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange
 from models import Pwp_Pwp_Stocks, ERROR, SUCCESS, SKIPPED
 import datetime
 
+def get_symbols_for_exchange(exchange_code, as_of_date):
+	results = get_symbols_by_exchange(exchange_code, as_of_date)
+	if results:
+		records = results['ArrayOfIdentifierRecords']
+		if records:
+			return records
+	return []
+
+def get_symbols_for_exchanges(as_of_date):
+	f = open('symbols.tsv', 'w')
+	f.write('Identifier\tName\tExchange\n')
+	exchanges = get_exchanges()
+	for exchange in exchanges:		
+		records = get_symbols_for_exchange(exchange, as_of_date)
+		print 'Found %s records for exchange %s.' % (len(records), exchange)
+		for record in records:
+			f.write('%s\t%s\t%s\n' % (record['Identifier'], record['Name'], exchange))
+	f.close()
+	
 def partition(lst, n):
     if n == 0:
         return [lst]
