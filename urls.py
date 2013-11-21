@@ -14,7 +14,8 @@ list_industries = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIndust
 get_instrument = 'http://globalmaster.xignite.com/xglobalmaster.json/GetInstrument?IncludeRelated=Securities&Identifier=%s&IdentifierType=%s&StartDate=%s&EndDate=%s&_Token=%s'
 get_instruments = 'http://globalmaster.xignite.com/xglobalmaster.json/GetInstruments?IncludeRelated=Securities&Identifiers=%s&IdentifierType=%s&AsOfDate=%s&_Token=%s'
 
-get_symbols_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=Symbol&InstrumentClass=Stock&AsOfDate=%s&_Token=%s'
+get_symbols_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=Symbol&InstrumentClass=%s&AsOfDate=%s&_Token=%s'
+get_isins_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=ISIN&InstrumentClass=%s&AsOfDate=%s&_Token=%s'
 
 def request(url, debug=False):
     try:

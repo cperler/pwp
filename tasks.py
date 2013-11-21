@@ -1,25 +1,57 @@
-from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange
+from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange, get_isins_by_exchange
 from models import Pwp_Pwp_Stocks, ERROR, SUCCESS, SKIPPED
 import datetime
 
-def get_symbols_for_exchange(exchange_code, as_of_date):
-	results = get_symbols_by_exchange(exchange_code, as_of_date)
+def get_symbols_for_exchange(exchange_code, asset, as_of_date):
+	results = get_symbols_by_exchange(exchange_code, asset, as_of_date)
 	if results:
 		records = results['ArrayOfIdentifierRecords']
 		if records:
 			return records
 	return []
-
-def get_symbols_for_exchanges(as_of_date):
+	
+def get_isins_for_exchange(exchange_code, asset, as_of_date):
+	results = get_isins_by_exchange(exchange_code, asset, as_of_date)
+	if results:
+		records = results['ArrayOfIdentifierRecords']
+		if records:
+			return records
+	return []
+	
+def get_securities_for_exchanges(as_of_date):
 	f = open('symbols.tsv', 'w')
-	f.write('Identifier\tName\tExchange\n')
-	exchanges = get_exchanges()
-	for exchange in exchanges:		
-		records = get_symbols_for_exchange(exchange, as_of_date)
-		print 'Found %s records for exchange %s.' % (len(records), exchange)
-		for record in records:
-			f.write('%s\t%s\t%s\n' % (record['Identifier'], record['Name'], exchange))
+	f.write('Type\tIdentifier\tISIN\tName\tExchange\n')
+	
+	failures = []
+	for asset in ['Bond', 'Indices', 'Stock', 'Other', 'StructuredProduct', 'Fund', 'MoneyMarket', 'Derivative', 'Currency', 'Technical', 'Commodity', 'CurrencyForward', 'InterestRateSwaps', 'DepositoryReceipt', 'ExchangeTradedFund']:
+		print 'Running for %s...' % asset
+		exchanges = get_exchanges()
+		for exchange in exchanges:
+			failure = False
+			print 'Requesting %s, %s...' % (asset, exchange)
+			try:
+				symbol_records = get_symbols_for_exchange(exchange, asset, as_of_date)
+				isin_records = get_isins_for_exchange(exchange, asset, as_of_date)
+			except Exception as e:
+				failure = True
+				error = 'Failed on (%s, %s): %s' % (asset, exchange, e)
+				print error
+				failures.append(error)
+				
+			if not failure:
+				print 'Found %s symbol records and %s isin records for exchange %s.' % (len(symbol_records), len(isin_records), exchange)
+				
+				isin_by_name = {}
+				for record in isin_records:
+					isin_by_name[record['Name']] = {'ISIN':record['Identifier']}
+				
+				for record in symbol_records:
+					isin_record = isin_by_name.get(record['Name'], {})
+					isin = isin_record.get('ISIN', '')
+					if isin is None: isin = ''
+					f.write('%s\t%s\t%s\t%s\t%s\n' % (asset, record['Identifier'], isin, record['Name'], exchange))
 	f.close()
+	print failures
 	
 def partition(lst, n):
     if n == 0:
