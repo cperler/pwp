@@ -17,6 +17,8 @@ get_instruments = 'http://globalmaster.xignite.com/xglobalmaster.json/GetInstrum
 get_symbols_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=Symbol&InstrumentClass=%s&AsOfDate=%s&_Token=%s'
 get_isins_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=ISIN&InstrumentClass=%s&AsOfDate=%s&_Token=%s'
 
+get_fundamentals = 'http://fundamentals.xignite.com/xFundamentals.json/GetCompanyFundamentalList?Identifier=%s&IdentifierType=%s&FundamentalTypes=MarketCapitalization,AverageDailyVolumeLastTwentyDays&_Token=%s&UpdatedSince='
+
 def request(url, debug=False):
     try:
         if debug:

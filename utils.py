@@ -14,6 +14,9 @@ def get_sectors():
 def get_industries():
     return request(list_industries % xignite_token)
 
+def get_fundamentals_by_symbol(identifier, identifier_type):
+    return request(get_fundamentals % (identifier, identifier_type, xignite_token))
+
 def get_instrument_details(identifier, identifier_type, start, end):
     return request(get_instrument % (identifier, identifier_type, start, end, xignite_token))
 

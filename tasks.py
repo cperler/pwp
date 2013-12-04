@@ -1,6 +1,20 @@
-from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange, get_isins_by_exchange
+from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange, get_isins_by_exchange,\
+	get_fundamentals_by_symbol
 from models import Pwp_Pwp_Stocks, ERROR, SUCCESS, SKIPPED
 import datetime
+
+def get_fundamentals_for_symbol(symbol, identifier_type):
+	results = get_fundamentals_by_symbol(symbol, identifier_type)
+	if results and 'Fundamentals' in results:
+		records = results['Fundamentals']
+		data = {}
+		if records is not None:
+			for record in records:
+				key = record['Type']
+				value = float(record['Value'])
+				data[key] = value
+		return data
+	return {}
 
 def get_symbols_for_exchange(exchange_code, asset, as_of_date):
 	results = get_symbols_by_exchange(exchange_code, asset, as_of_date)
@@ -23,7 +37,9 @@ def get_securities_for_exchanges(as_of_date):
 	f.write('Type\tIdentifier\tISIN\tName\tExchange\n')
 	
 	failures = []
-	for asset in ['Bond', 'Indices', 'Stock', 'Other', 'StructuredProduct', 'Fund', 'MoneyMarket', 'Derivative', 'Currency', 'Technical', 'Commodity', 'CurrencyForward', 'InterestRateSwaps', 'DepositoryReceipt', 'ExchangeTradedFund']:
+	asset_list = ['Bond', 'Indices', 'Stock', 'Other', 'StructuredProduct', 'Fund', 'MoneyMarket', 'Derivative', 'Currency', 'Technical', 'Commodity', 'CurrencyForward', 'InterestRateSwaps', 'DepositoryReceipt', 'ExchangeTradedFund']
+	asset_list = ['Indices', 'Stock', 'Other', 'Fund', 'MoneyMarket', 'DepositoryReceipt', 'ExchangeTradedFund']
+	for asset in asset_list:
 		print 'Running for %s...' % asset
 		exchanges = get_exchanges()
 		for exchange in exchanges:
@@ -64,7 +80,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     query_date = today - datetime.timedelta(days=daysback)
     filename = '%s.tsv' % str(query_date)
     f = open(filename, 'w')
-    f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\n')
+    f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\tmarket cap\t20 day adv\n')
 
     err_filename = 'err_%s.tsv' % str(today)
     e = open(err_filename, 'w')
@@ -76,7 +92,8 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     missing_isin = 0
 
     for stock in Pwp_Pwp_Stocks.select():
-        if error > 5: break
+        #if error > 5: break
+        #if success > 5: break
         stock_id = stock.stock
         company = stock.stock_name
         exchange = stock.stock_exchange
@@ -144,6 +161,15 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
             continue
         
         print 'Px %s found on xignite quote for (%s, %s).' % (xignite_latest_close, symbol, isin)
+        
+        fundamentals = get_fundamentals_for_symbol(isin, 'ISIN')
+        
+        market_cap = fundamentals.get('MarketCapitalization', None)
+        market_cap = 'n/a' if market_cap is None else str(float(market_cap))
+        adv = fundamentals.get('AverageDailyVolumeLastTwentyDays', None)
+        adv = 'n/a' if adv is None else str(float(adv))
+        print market_cap, adv
+        
         if persist:
             try:
                 stock.update_closing_price_for_date(xignite_latest_close)
@@ -153,25 +179,28 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
                 e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
                 print msg
                 continue
-            
+		
         try:
-            f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
+            f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
                     (xignite_market.encode('utf-8'), 
-                     xignite_symbol, 
+                     xignite_symbol.encode('utf-8'), 
                      stock_id, 
-                     company, 
-                     exchange, 
-                     symbol, 
-                     local_ccy, 
+                     company.encode('utf-8'), 
+                     exchange.encode('utf-8'), 
+                     symbol.encode('utf-8'), 
+                     local_ccy.encode('utf-8'), 
                      xignite_prev_close, 
                      xignite_last, 
                      xignite_latest_close, 
                      xignite_ccy.encode('utf-8'), 
                      xignite_industry.encode('utf-8'), 
-                     isin.encode('utf-8')))
+                     isin.encode('utf-8'),
+                     market_cap.encode('utf-8'),
+                     adv.encode('utf-8')))
             success += 1
         except Exception as ex:            
-            print 'Exception writing to file for (%s, %s).' % (symbol, isin)
+            print 'Exception writing to file for (%s, %s): %s' % (symbol, isin, ex)
+    f.flush()
     f.close()
     e.close()
     
