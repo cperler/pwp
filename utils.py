@@ -42,7 +42,7 @@ from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 from email import encoders
 
-def send_mail( send_from, send_to, subject, text, files=[], server="localhost", port=587, username='', password='', isTls=True):
+def send_mail( send_from, send_to, subject, text, files=[], server="vps11862.inmotionhosting.com", port=587, username='webmaster@playpwp.org', password='k}e16{XZ^@(J', isTls=True):
     msg = MIMEMultipart('alternative')
     msg['From'] = send_from
     msg['To'] = COMMASPACE.join(send_to)
