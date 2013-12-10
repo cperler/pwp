@@ -89,7 +89,7 @@ class Pwp_Pwp_Stocks(BaseModel):
     ytd_total_change = DecimalField()
 
     class Meta:
-        db_table = 'pwp_pwp_xignite'
+        db_table = 'pwp_pwp_stocks'
 
     def get_xignite_exchange(self):
         exchange_list = Pwp_Exchange_Map.select().where(Pwp_Exchange_Map.capiq == self.stock_exchange)

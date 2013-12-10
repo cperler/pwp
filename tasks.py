@@ -11,8 +11,13 @@ def get_fundamentals_for_symbol(symbol, identifier_type):
 		if records is not None:
 			for record in records:
 				key = record['Type']
-				value = float(record['Value'])
-				data[key] = value
+				if record['Value'] != '':
+					try:
+						value = float(record['Value'])
+					except:
+						print 'Unable to convert to float: %s' % record
+						value = 0
+					data[key] = value
 		return data
 	return {}
 
@@ -34,11 +39,12 @@ def get_isins_for_exchange(exchange_code, asset, as_of_date):
 	
 def get_securities_for_exchanges(as_of_date):
 	f = open('symbols.tsv', 'w')
-	f.write('Type\tIdentifier\tISIN\tName\tExchange\n')
-	
+	f.write('Type\tIdentifier\tISIN\tName\tExchange\n')	
 	failures = []
 	asset_list = ['Bond', 'Indices', 'Stock', 'Other', 'StructuredProduct', 'Fund', 'MoneyMarket', 'Derivative', 'Currency', 'Technical', 'Commodity', 'CurrencyForward', 'InterestRateSwaps', 'DepositoryReceipt', 'ExchangeTradedFund']
 	asset_list = ['Indices', 'Stock', 'Other', 'Fund', 'MoneyMarket', 'DepositoryReceipt', 'ExchangeTradedFund']
+	#asset_list = ['Stock']
+	records_by_symbol = {}
 	for asset in asset_list:
 		print 'Running for %s...' % asset
 		exchanges = get_exchanges()
@@ -65,10 +71,41 @@ def get_securities_for_exchanges(as_of_date):
 					isin_record = isin_by_name.get(record['Name'], {})
 					isin = isin_record.get('ISIN', '')
 					if isin is None: isin = ''
-					f.write('%s\t%s\t%s\t%s\t%s\n' % (asset, record['Identifier'], isin, record['Name'], exchange))
+					
+					record_ident = record['Identifier'] 
+					output = '%s\t%s\t%s\t%s\t%s\n' % (asset, record_ident, isin, record['Name'], exchange)
+					if record_ident not in records_by_symbol:													
+						records_by_symbol[record_ident] = {}	
+					records_by_symbol[record_ident][exchange] = output
+					#f.write('%s\t%s\t%s\t%s\t%s\n' % (asset, record['Identifier'], isin, record['Name'], exchange))
+	
+	for symbol, records in records_by_symbol.items():
+		exchange_with_max_volume = None
+		max_volume = 0
+		
+		if len(records) == 1:
+			for exchange, _ in records.items():
+				exchange_with_max_volume = exchange
+		else:
+			for exchange, _ in records.items():
+				fundamentals = get_fundamentals_for_symbol('%s.%s' % (symbol, exchange), 'Symbol')		
+				adv = fundamentals.get('AverageDailyVolumeLastTwentyDays', None)
+				adv = 0 if adv is None else float(adv)
+					
+				if adv >= max_volume:
+					max_volume = adv
+					exchange_with_max_volume = exchange
+					
+			if len(records) > 1:
+				print 'Multiple records found for %s - keeping %s' % (symbol, exchange_with_max_volume)
+			for exchange, _ in records.items():
+				if exchange != exchange_with_max_volume:
+					print 'Dropping: (%s, %s)' % (symbol, exchange)
+		f.write(records[exchange_with_max_volume])
+	f.flush()			
 	f.close()
 	print failures
-	
+
 def partition(lst, n):
     if n == 0:
         return [lst]
@@ -80,7 +117,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     query_date = today - datetime.timedelta(days=daysback)
     filename = '%s.tsv' % str(query_date)
     f = open(filename, 'w')
-    f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\tmarket cap\t20 day adv\n')
+    f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\tmarket cap\t20 day adv\tsplit ratio\tdividend\n')
 
     err_filename = 'err_%s.tsv' % str(today)
     e = open(err_filename, 'w')
@@ -138,6 +175,9 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         xignite_industry = security.get('CategoryOrIndustry', '')
         xignite_ccy = quote['Currency']
         
+        xignite_split = quote.get('SplitRatio', '')
+        xignite_div = quote.get('CummulativeCashDividend', '')
+        
         if xignite_market in ['MILAN', 'NAIROBI', 'MEXICO', 'MANILA', 'HOCHIMINH STOCK EXCHANGE', 
                               'KARACHI', 'JAKARTA', 'BOGOTA', 'CAIRO']:
             error += 1
@@ -168,7 +208,6 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         market_cap = 'n/a' if market_cap is None else str(float(market_cap))
         adv = fundamentals.get('AverageDailyVolumeLastTwentyDays', None)
         adv = 'n/a' if adv is None else str(float(adv))
-        print market_cap, adv
         
         if persist:
             try:
@@ -181,7 +220,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
                 continue
 		
         try:
-            f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
+            f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
                     (xignite_market.encode('utf-8'), 
                      xignite_symbol.encode('utf-8'), 
                      stock_id, 
@@ -196,7 +235,9 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
                      xignite_industry.encode('utf-8'), 
                      isin.encode('utf-8'),
                      market_cap.encode('utf-8'),
-                     adv.encode('utf-8')))
+                     adv.encode('utf-8'),
+                     str(xignite_split).encode('utf-8'),
+                     str(xignite_div).encode('utf-8')))
             success += 1
         except Exception as ex:            
             print 'Exception writing to file for (%s, %s): %s' % (symbol, isin, ex)
@@ -210,8 +251,8 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     body += '<br/>ISINs missing on %s stocks.' % missing_isin
     print body
     
-    #send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
-    send_mail('craig.perler@gmail.com', emailto, 'xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
+    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
+    #send_mail('craig.perler@gmail.com', emailto, 'xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
 
 
 
