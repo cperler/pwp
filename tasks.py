@@ -2,6 +2,34 @@ from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_excha
 	get_fundamentals_by_symbol
 from models import Pwp_Pwp_Stocks, ERROR, SUCCESS, SKIPPED
 import datetime
+import urllib
+from utils import get_fundamental_file, get_price_file
+import zlib
+
+def get_fundamental_files(as_of_date):
+	download_files(as_of_date, get_fundamental_file, 'fundamentals.csv')
+	
+def get_price_files(as_of_date):
+	download_files(as_of_date, get_price_file, 'prices.csv')
+
+def download_files(as_of_date, download_method, file_name):
+	exchanges = get_exchanges()
+	data = []
+	for exchange in exchanges:
+		try:
+			response = download_method(exchange, as_of_date)
+			ba = bytearray(response.read())
+			if data == []:
+				data.extend(zlib.decompress(bytes(ba), 15+32).split('\n')[:])
+			else:
+				data.extend(zlib.decompress(bytes(ba), 15+32).split('\n')[1:])
+		except Exception as e:
+			pass
+	f = open(file_name, 'w')
+	f.write(''.join(data))
+	f.flush()
+	f.close()	
+	return data
 
 def get_fundamentals_for_symbol(symbol, identifier_type):
 	results = get_fundamentals_by_symbol(symbol, identifier_type)
@@ -43,7 +71,6 @@ def get_securities_for_exchanges(as_of_date):
 	failures = []
 	asset_list = ['Bond', 'Indices', 'Stock', 'Other', 'StructuredProduct', 'Fund', 'MoneyMarket', 'Derivative', 'Currency', 'Technical', 'Commodity', 'CurrencyForward', 'InterestRateSwaps', 'DepositoryReceipt', 'ExchangeTradedFund']
 	asset_list = ['Indices', 'Stock', 'Other', 'Fund', 'MoneyMarket', 'DepositoryReceipt', 'ExchangeTradedFund']
-	#asset_list = ['Stock']
 	records_by_symbol = {}
 	for asset in asset_list:
 		print 'Running for %s...' % asset

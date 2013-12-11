@@ -35,6 +35,16 @@ def get_symbols_by_exchange(exchange_code, asset, as_of_date):
 def get_isins_by_exchange(exchange_code, asset, as_of_date):
 	return request(urls.get_isins_by_exchange % (exchange_code, asset, as_of_date, xignite_token))
 
+def get_fundamental_file(exchange_code, as_of_date):
+    url = urls.get_fundamental_file % (as_of_date, exchange_code, xignite_token)
+    response = urllib.urlopen(url)
+    return response
+
+def get_price_file(exchange_code, as_of_date):
+    url = urls.get_price_file % (as_of_date, exchange_code, xignite_token)
+    response = urllib.urlopen(url)
+    return response
+
 import smtplib, os
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase

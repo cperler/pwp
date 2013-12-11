@@ -17,7 +17,10 @@ get_instruments = 'http://globalmaster.xignite.com/xglobalmaster.json/GetInstrum
 get_symbols_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=Symbol&InstrumentClass=%s&AsOfDate=%s&_Token=%s'
 get_isins_by_exchange = 'http://globalmaster.xignite.com/xglobalmaster.json/ListIdentifiersByExchange?Exchange=%s&IdentifierType=ISIN&InstrumentClass=%s&AsOfDate=%s&_Token=%s'
 
-get_fundamentals = 'http://fundamentals.xignite.com/xFundamentals.json/GetCompanyFundamentalList?Identifier=%s&IdentifierType=%s&FundamentalTypes=MarketCapitalization,AverageDailyVolumeLastTwentyDays&_Token=%s&UpdatedSince='
+get_fundamentals = 'http://www.xignite.com/xGlobalFundamentals.xml/GetFundamental?Identifier=%s&IdentifierType=%s&FundamentalTypes=MarketCapitalization,AverageDailyVolumeLastTwentyDays&_Token=%s&UpdatedSince='
+
+get_fundamental_file = 'http://cloudfiles.xignite.com/xGlobalFundamentalsFile.json/GetFile?Date=%s&Exchange=%s&_Token=%s&_DownloadFile=true'
+get_price_file = 'http://cloudfiles.xignite.com/xGlobalHistoricalFile.xml/GetFile?Date=%s&Exchange=%s&_Token=%s&_DownloadFile=true'
 
 def request(url, debug=False):
     try:
