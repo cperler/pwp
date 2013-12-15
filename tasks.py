@@ -210,6 +210,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     error = 0
     skip = 0
     missing_isin = 0
+    splits_today = []
 
     for stock in Pwp_Pwp_Xignite_Stocks.select():
         #if error > 5: break
@@ -261,6 +262,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         xignite_ccy = quote['Currency']
         
         xignite_split = quote.get('SplitRatio', '')
+        if xignite_split != 1: splits_today.append(xignite_symbol)
         #xignite_div = quote.get('CummulativeCashDividend', '')
         
         if xignite_market in ['MILAN', 'NAIROBI', 'MEXICO', 'MANILA', 'HOCHIMINH STOCK EXCHANGE', 
@@ -338,6 +340,8 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     body += '<br/>Skipped updating %s stocks as they were already current.' % skip
     body += '<br/>Found errors updating %s stocks.' % error
     body += '<br/>ISINs missing on %s stocks.' % missing_isin
+    if len(splits_today) > 0:
+		body += '<br/>Splits today: %s' % ','.join(splits_today)
     print body
     
 	#    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
