@@ -1,6 +1,6 @@
 from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange, get_isins_by_exchange,\
 	get_fundamentals_by_symbol, xignite_token
-from models import Pwp_Pwp_Stocks, ERROR, SUCCESS, SKIPPED
+from models import Pwp_Pwp_Stocks, Pwp_Pwp_Xignite_Stocks, ERROR, SUCCESS, SKIPPED
 import datetime
 import urllib
 from utils import get_fundamental_file, get_price_file
@@ -211,7 +211,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     skip = 0
     missing_isin = 0
 
-    for stock in Pwp_Pwp_Stocks.select():
+    for stock in Pwp_Pwp_Xignite_Stocks.select():
         #if error > 5: break
         #if success > 5: break
         stock_id = stock.stock
@@ -255,11 +255,13 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         xignite_prev_close = quote['LastClose']
         xignite_last = quote['Last']
         xignite_latest_close = quote['EndOfDayPrice']
+        xignite_change_amt = quote['ChangeFromLastClose']
+        xignite_change_pct = quote['PercentChangeFromLastClose']
         xignite_industry = security.get('CategoryOrIndustry', '')
         xignite_ccy = quote['Currency']
         
         xignite_split = quote.get('SplitRatio', '')
-        xignite_div = quote.get('CummulativeCashDividend', '')
+        #xignite_div = quote.get('CummulativeCashDividend', '')
         
         if xignite_market in ['MILAN', 'NAIROBI', 'MEXICO', 'MANILA', 'HOCHIMINH STOCK EXCHANGE', 
                               'KARACHI', 'JAKARTA', 'BOGOTA', 'CAIRO']:
@@ -288,13 +290,17 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         fundamentals = get_fundamentals_for_symbol(isin, 'ISIN')
         
         market_cap = fundamentals.get('MarketCapitalization', None)
-        market_cap = 'n/a' if market_cap is None else str(float(market_cap))
+        market_cap = 0 if market_cap is None else str(float(market_cap))
         adv = fundamentals.get('AverageDailyVolumeLastTwentyDays', None)
         adv = 'n/a' if adv is None else str(float(adv))
+        xignite_div = fundamentals.get('LastDividendYield', None)
+        xignite_div = 0 if xignite_div is None else str(float(xignite_div))
         
         if persist:
             try:
-                stock.update_closing_price_for_date(xignite_latest_close)
+                stock.update_closing_price_for_date(xignite_latest_close)                		
+                stock.update_data(xignite_prev_close, xignite_last, xignite_change_amt, xignite_change_pct,
+								market_cap, xignite_div)
             except Exception as ex:
                 error += 1
                 msg = 'Exception %s persisting px %s for (%s, %s).' % (ex, xignite_latest_close, symbol, isin)
@@ -334,7 +340,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     body += '<br/>ISINs missing on %s stocks.' % missing_isin
     print body
     
-    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
+	#    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
     #send_mail('craig.perler@gmail.com', emailto, 'xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
 
 
