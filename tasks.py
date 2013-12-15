@@ -95,7 +95,10 @@ def get_fundamentals_for_symbol(symbol, identifier_type):
 		if records is not None:
 			for record in records:
 				key = record['Type']
-				if record['Value'] != '':
+				message = record['Message']
+				if message is not None and message != '':
+					data[key] = 0
+				elif record['Value'] != '':
 					try:
 						value = float(record['Value'])
 					except:
@@ -200,7 +203,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     query_date = today - datetime.timedelta(days=daysback)
     filename = '%s.tsv' % str(query_date)
     f = open(filename, 'w')
-    f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\tmarket cap\t20 day adv\tsplit ratio\tdividend\n')
+    f.write('xignite market\txignite symbol\tqa id\tqa company\tqa exchange\tqa ticker\tqa currency\txignite previous_close\txignite last\txignite latest_close\txignite native currency\txignite industry sector\txignite isin\tmarket cap\tsplit ratio\tdividend\n')
 
     err_filename = 'err_%s.tsv' % str(today)
     e = open(err_filename, 'w')
@@ -293,8 +296,6 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         
         market_cap = fundamentals.get('MarketCapitalization', None)
         market_cap = 0 if market_cap is None else str(float(market_cap))
-        adv = fundamentals.get('AverageDailyVolumeLastTwentyDays', None)
-        adv = 'n/a' if adv is None else str(float(adv))
         xignite_div = fundamentals.get('LastDividendYield', None)
         xignite_div = 0 if xignite_div is None else str(float(xignite_div))
         
@@ -311,7 +312,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
                 continue
 		
         try:
-            f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
+            f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
                     (xignite_market.encode('utf-8'), 
                      xignite_symbol.encode('utf-8'), 
                      stock_id, 
@@ -326,7 +327,6 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
                      xignite_industry.encode('utf-8'), 
                      isin.encode('utf-8'),
                      market_cap.encode('utf-8'),
-                     adv.encode('utf-8'),
                      str(xignite_split).encode('utf-8'),
                      str(xignite_div).encode('utf-8')))
             success += 1
