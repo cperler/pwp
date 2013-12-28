@@ -218,7 +218,8 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     for stock in Pwp_Pwp_Xignite_Stocks.select():
         #if error > 5: break
         #if success > 5: break
-        stock_id = stock.stock
+        #if skip > 5: break
+	stock_id = stock.stock
         company = stock.stock_name
         exchange = stock.stock_exchange
         symbol = stock.stock_symbol
@@ -265,7 +266,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         xignite_ccy = quote['Currency']
         
         xignite_split = quote.get('SplitRatio', '')
-        if xignite_split != 1: splits_today.append(xignite_symbol)
+	if xignite_split != 0 and xignite_split != 1 and xignite_split != '': splits_today.append(xignite_symbol)
         #xignite_div = quote.get('CummulativeCashDividend', '')
         
         if xignite_market in ['MILAN', 'NAIROBI', 'MEXICO', 'MANILA', 'HOCHIMINH STOCK EXCHANGE', 
@@ -291,9 +292,15 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
             continue
         
         print 'Px %s found on xignite quote for (%s, %s).' % (xignite_latest_close, symbol, isin)
+
         
-        fundamentals = get_fundamentals_for_symbol(isin, 'ISIN')
+        #fundamentals = get_fundamentals_for_symbol(isin, 'ISIN')
         
+        if exchange in ['ARCX','BATS','CBSX','CCFE','GLBX','ICEL','IFUS','OOTC','PINX','XADF','XASE','XBOS','XCBF','XCBT','XCEC','XCHI','XCIS','XCME','XCSC','XEUS','XIMM','XISX','XKBT','XMGE','XNAS','XNLI','XNQL','XNYC','XNYM','XNYS','XOCH','XOTC','XPBT','XPHL','_MFQS']:
+        	fundamentals = get_fundamentals_for_symbol(xignite_symbol, 'Symbol')
+        else:
+		fundamentals = get_fundamentals_for_symbol('%s.%s' % (xignite_symbol, exchange), 'Symbol')
+
         market_cap = fundamentals.get('MarketCapitalization', None)
         market_cap = 0 if market_cap is None else str(float(market_cap))
         xignite_div = fundamentals.get('LastDividendYield', None)
@@ -340,8 +347,9 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     body += '<br/>Skipped updating %s stocks as they were already current.' % skip
     body += '<br/>Found errors updating %s stocks.' % error
     body += '<br/>ISINs missing on %s stocks.' % missing_isin
+    
     if len(splits_today) > 0:
-		body += '<br/>Splits today: %s' % ','.join(splits_today)
+		body += '<br/>Splits today: %s' % ','.join([split for split in splits_today if split is not None])
     print body
     
 	#    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
