@@ -198,7 +198,7 @@ def partition(lst, n):
     division = len(lst) / float(n)
     return [ lst[int(round(division * i)): int(round(division * (i + 1)))] for i in xrange(n) ]
     
-def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.com']):
+def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.com'], all_stocks=False):
     today = datetime.date.today()
     query_date = today - datetime.timedelta(days=daysback)
     filename = '%s.tsv' % str(query_date)
@@ -216,8 +216,9 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     splits_today = []
 
     picks = Pwp_Pwp_Participant_Picks.select(Pwp_Pwp_Participant_Picks.stock)
+    stocks = Pwp_Pwp_Xignite_Stocks.select() if all_stocks == True else Pwp_Pwp_Xignite_Stocks.select().where(Pwp_Pwp_Xignite_Stocks.stock << picks)
 
-    for stock in Pwp_Pwp_Xignite_Stocks.select().where(Pwp_Pwp_Xignite_Stocks.stock << picks):
+    for stock in stocks:
         #if error > 5: break
         #if success > 5: break
         #if skip > 5: break
