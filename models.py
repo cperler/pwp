@@ -21,7 +21,7 @@ class Pwp_Pwp_Participant_Picks(BaseModel):
     last_close = DecimalField()
     long_short = IntegerField()
     notes = CharField()
-    pick = IntegerField()
+    pick = IntegerField(primary_key=True)
     start_price = DecimalField()
     stock = IntegerField(db_column='stock_id')
     trade_date = IntegerField()

@@ -1,6 +1,6 @@
 from utils import get_exchanges, get_eod_quotes, send_mail, get_symbols_by_exchange, get_isins_by_exchange,\
 	get_fundamentals_by_symbol, xignite_token
-from models import Pwp_Pwp_Stocks, Pwp_Pwp_Xignite_Stocks, ERROR, SUCCESS, SKIPPED
+from models import Pwp_Pwp_Participant_Picks, Pwp_Pwp_Stocks, Pwp_Pwp_Xignite_Stocks, ERROR, SUCCESS, SKIPPED
 import datetime
 import urllib
 from utils import get_fundamental_file, get_price_file
@@ -215,7 +215,9 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     missing_isin = 0
     splits_today = []
 
-    for stock in Pwp_Pwp_Xignite_Stocks.select():
+    picks = Pwp_Pwp_Participant_Picks.select(Pwp_Pwp_Participant_Picks.stock)
+
+    for stock in Pwp_Pwp_Xignite_Stocks.select().where(Pwp_Pwp_Xignite_Stocks.stock << picks):
         #if error > 5: break
         #if success > 5: break
         #if skip > 5: break
