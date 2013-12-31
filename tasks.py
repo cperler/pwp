@@ -217,6 +217,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
 
     picks = Pwp_Pwp_Participant_Picks.select(Pwp_Pwp_Participant_Picks.stock)
     stocks = Pwp_Pwp_Xignite_Stocks.select() if all_stocks == True else Pwp_Pwp_Xignite_Stocks.select().where(Pwp_Pwp_Xignite_Stocks.stock << picks)
+    stocks = stocks.where(Pwp_Pwp_Xignite_Stocks.delist != 1)
 
     for stock in stocks:
         #if error > 5: break
@@ -231,8 +232,9 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
 
         if len(isin) != 12:
             missing_isin += 1            
+            isin = 'noisin'
             msg = 'Invalid ISIN in db for (%s, %s).' % (symbol, isin)
-            e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
+            #e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
             print msg
             continue
         
@@ -240,7 +242,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
             skip += 1
             msg = 'Price already exists in db for (%s, %s).' % (symbol, isin)
             print msg
-            continue
+            #continue
                 
         quote = stock._retrieve_closing_quote_for_date()
         if quote is None:
@@ -288,11 +290,11 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
             continue            
         
         if local_ccy != xignite_ccy:
-            error += 1
+            #error += 1
             msg = 'Persisted currency %s does not match xIgnite currency %s for (%s, %s).' % (local_ccy, xignite_ccy, symbol, isin)
-            e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
+            #e.write('%s\t%s\t%s\n' % (symbol, isin, msg))
             print msg
-            continue
+            #continue
         
         print 'Px %s found on xignite quote for (%s, %s).' % (xignite_latest_close, symbol, isin)
 
@@ -323,22 +325,22 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
 		
         try:
             f.write('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' % 
-                    (xignite_market.encode('utf-8'), 
-                     xignite_symbol.encode('utf-8'), 
+                    (xignite_market.encode('utf-8') if xignite_market else '', 
+                     xignite_symbol.encode('utf-8') if xignite_symbol else '', 
                      stock_id, 
-                     company.encode('utf-8'), 
-                     exchange.encode('utf-8'), 
-                     symbol.encode('utf-8'), 
-                     local_ccy.encode('utf-8'), 
-                     xignite_prev_close, 
-                     xignite_last, 
-                     xignite_latest_close, 
-                     xignite_ccy.encode('utf-8'), 
-                     xignite_industry.encode('utf-8'), 
-                     isin.encode('utf-8'),
-                     market_cap.encode('utf-8'),
-                     str(xignite_split).encode('utf-8'),
-                     str(xignite_div).encode('utf-8')))
+                     company.encode('utf-8') if company else '', 
+                     exchange.encode('utf-8') if exchange else '', 
+                     symbol.encode('utf-8') if symbol else '', 
+                     local_ccy.encode('utf-8') if local_ccy else '', 
+                     xignite_prev_close if xignite_prev_close else '', 
+                     xignite_last if xignite_last else '', 
+                     xignite_latest_close if xignite_latest_close else '', 
+                     xignite_ccy.encode('utf-8') if xignite_ccy else '', 
+                     xignite_industry.encode('utf-8') if xignite_industry else '', 
+                     isin.encode('utf-8') if isin else '',
+                     str(market_cap).encode('utf-8') if market_cap else '',
+                     str(xignite_split).encode('utf-8') if xignite_split else '',
+                     str(xignite_div).encode('utf-8') if xignite_div else ''))
             success += 1
         except Exception as ex:            
             print 'Exception writing to file for (%s, %s): %s' % (symbol, isin, ex)
@@ -349,7 +351,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     body = 'Successfully updated prices for %s stocks.' % success
     body += '<br/>Skipped updating %s stocks as they were already current.' % skip
     body += '<br/>Found errors updating %s stocks.' % error
-    body += '<br/>ISINs missing on %s stocks.' % missing_isin
+    #body += '<br/>ISINs missing on %s stocks.' % missing_isin
     
     if len(splits_today) > 0:
 		body += '<br/>Splits today: %s' % ','.join([split for split in splits_today if split is not None])
