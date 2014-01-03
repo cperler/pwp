@@ -93,8 +93,8 @@ class Pwp_Pwp_Stocks(BaseModel):
 
     def get_xignite_exchange(self):
         exchange_list = Pwp_Exchange_Map.select().where(Pwp_Exchange_Map.capiq == self.stock_exchange)
-        if exchange_list.count() == 0:
-            return None
+        if exchange_list is None or exchange_list.count() == 0:
+            return self.stock_exchange
         elif exchange_list.count() == 1:
             return exchange_list.get().xignite
         raise Exception('Too many exchange codes available in mapping table for %s.' % self.stock_exchange)
@@ -224,8 +224,8 @@ class Pwp_Pwp_Xignite_Stocks(BaseModel):
         
     def get_xignite_exchange(self):
         exchange_list = Pwp_Exchange_Map.select().where(Pwp_Exchange_Map.capiq == self.stock_exchange)
-        if exchange_list.count() == 0:
-            return None
+        if exchange_list is None or exchange_list.count() == 0:
+            return self.stock_exchange
         elif exchange_list.count() == 1:
             return exchange_list.get().xignite
         raise Exception('Too many exchange codes available in mapping table for %s.' % self.stock_exchange)

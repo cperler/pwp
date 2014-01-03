@@ -220,6 +220,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     stocks = stocks.where(Pwp_Pwp_Xignite_Stocks.delist != 1)
 
     for stock in stocks:
+	#if stock.stock_symbol != 'SMLE3': continue
         #if error > 5: break
         #if success > 5: break
         #if skip > 5: break
