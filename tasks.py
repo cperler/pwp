@@ -358,7 +358,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
     print body
     
 	#    send_mail('craig.perler@gmail.com', emailto, '[QA] xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
-    send_mail('craig.perler@gmail.com', emailto, 'xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
+    send_mail('tech@portfolioswithpurpose.org', emailto, 'xIgnite Report: %s' % str(today), '<h3>Please find the latest pricing data from xIgnite attached.</h3><br/>' + body, files=[filename, err_filename])
 
 
 
