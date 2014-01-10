@@ -245,7 +245,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
             print msg
             #continue
                 
-        quote = stock._retrieve_closing_quote_for_date()
+        quote = stock._retrieve_closing_quote_for_date(query_date)
         if quote is None:
             error += 1
             msg = 'No quote available for (%s, %s).' % (symbol, isin)
@@ -314,7 +314,7 @@ def retrieve_days_prices(persist=True, daysback=0, emailto=['craig.perler@gmail.
         
         if persist:
             try:
-                stock.update_closing_price_for_date(xignite_latest_close)                		
+                stock.update_closing_price_for_date(xignite_latest_close, query_date)                		
                 stock.update_data(xignite_prev_close, xignite_last, xignite_change_amt, xignite_change_pct,
 								market_cap, xignite_div)
             except Exception as ex:

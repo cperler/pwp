@@ -164,9 +164,10 @@ class Pwp_Pwp_Stocks(BaseModel):
 class Pwp_Pwp_Xignite_Stocks_History(BaseModel):
     date = CharField()
     last_close = FloatField()
-    stock = IntegerField(db_column='stock_id', primary_key=True)
+    stock = IntegerField(db_column='stock_id')
 
     class Meta:
+	primary_key = CompositeKey('date', 'stock')
         db_table = 'pwp_pwp_xignite_stocks_history'
 
 
@@ -281,14 +282,18 @@ class Pwp_Pwp_Xignite_Stocks(BaseModel):
         self.last_close = last_close
         self.change_amt = change_amt
         self.change_pct = change_pct
-        self.market_cap = market_cap
+	if market_cap != 0:
+            self.market_cap = market_cap
         self.dividend_yield = div_yield
         self.save()
 
     def update_closing_price_for_date(self, px=None, dt=datetime.date.today(), identifier_type='ISIN'):
         if self.has_db_price_for_date(dt):
-            print 'Record already exists for (%s, %s) -- not updating.' % (self.stock_symbol, dt)
-            return SKIPPED
+            quote = self._get_history_from_db(dt)
+            if quote is not None:
+                 Pwp_Pwp_Xignite_Stocks_History.update(last_close=px).where(Pwp_Pwp_Xignite_Stocks_History.stock==self.stock, Pwp_Pwp_Xignite_Stocks_History.date == dt).execute()
+            #print 'Record already exists for (%s, %s) -- not updating.' % (self.stock_symbol, dt)
+            return SUCCESS
         else:
             px = px if px else self._retrieve_closing_price_for_date(dt, identifier_type)
             if px is None or px == 0.0:
